@@ -25,14 +25,14 @@ AI 生成的 UI 容易"漂移":每个会话都会发明新颜色、新间距、�
 **本地源码安装**(开发推荐):
 
 ```bash
-git clone https://github.com/<owner>/dsh-ui-style.git
+git clone https://github.com/MeguruForever/dsh-ui-style.git
 dsh plugin --profile web add /path/to/dsh-ui-style
 ```
 
 **从 GitHub 安装**(发布后可用):
 
 ```bash
-dsh plugin --profile web add github:<owner>/dsh-ui-style
+dsh plugin --profile web add github:MeguruForever/dsh-ui-style
 ```
 
 **从 npm 安装**(发布后可用):

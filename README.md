@@ -25,14 +25,14 @@ Prerequisites: [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harnes
 **From a local checkout** (recommended for development):
 
 ```bash
-git clone https://github.com/<owner>/dsh-ui-style.git
+git clone https://github.com/MeguruForever/dsh-ui-style.git
 dsh plugin --profile web add /path/to/dsh-ui-style
 ```
 
 **From GitHub** (once published):
 
 ```bash
-dsh plugin --profile web add github:<owner>/dsh-ui-style
+dsh plugin --profile web add github:MeguruForever/dsh-ui-style
 ```
 
 **From npm** (once published):
