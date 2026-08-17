@@ -9,10 +9,16 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin tha
 ## What it does
 
 1. **A dedicated page** in the DSH Web settings (*Settings → UI Styles*) where you paste a web URL or a GitHub repository address.
-2. **Capture**: the plugin fetches the page's stylesheets — or the repo's `tailwind.config.*`, theme files, `globals.css`, `components.json`, `package.json` — and parses them into **design tokens**: color palette and semantic roles, typography scale, spacing scale, corner radii, shadows, breakpoints, motion timings, dark-mode support, and framework detection (Tailwind, shadcn/ui, MUI, Ant Design, Bootstrap, Chakra…).
-3. **Distill**: the tokens are summarized into a standard DSH **skill bundle** (`ui-style-<name>/SKILL.md` + `references/tokens.json`) saved **inside the plugin's own `skills/` directory**.
-4. **Reuse**: the plugin registers its skills directory with the DSH skill registry, so captured styles are immediately discoverable in every session. Ask for *"build the settings page in the `ui-style-acme-com` style"* and the model loads the captured design system and imitates it — no copy-pasting style guides.
-5. **Quality pass**: a built-in professional skill, **`ui-design-craft`** (visual hierarchy, WCAG contrast, state coverage, responsive discipline, motion restraint, anti-AI-slop checklist), pairs with every captured style to keep the output at a professional bar.
+2. **Deep capture**: the plugin fetches the page's stylesheets — or the repo's `tailwind.config.*`, theme files, `globals.css`, `components.json`, `package.json` — and parses them into **design tokens**: color palette and semantic roles, typography scale, spacing scale, corner radii, shadows, border widths, layout container widths, breakpoints, motion timings, dark-mode support, **component blueprints** (measured declarations of `button`, `.card`, `input`, headings, tables…), and framework detection (Tailwind, shadcn/ui, MUI, Ant Design, Bootstrap, Chakra…).
+3. **Design-language summary**: beyond raw tokens, the plugin derives the *design thinking* — corners, elevation, density, palette mood, type voice, border and motion character — each trait with its measured evidence, so the model can make faithful decisions where no exact token exists.
+4. **Distill**: everything is summarized into a standard DSH **skill bundle** (`ui-style-<name>/SKILL.md` + `references/tokens.json`) saved **inside the plugin's own `skills/` directory**.
+5. **Live theme preview**: every saved style renders a mock application (topbar, hero, buttons, card, input, badge) styled with the captured tokens, right on the settings page — pick the theme you want by looking at it, not by guessing.
+6. **Reuse from the composer**: captured styles are registered with the DSH skill registry and become invocable in every session —
+   - type **`@`** in the chat input and pick a style from the **style** group,
+   - or click the **🎨 Style** button in the input row to pop the picker open,
+   - or **pin a current style** on the settings page and get a one-click chip above the composer that stages `/ui-style-<name>` for you,
+   - or just ask: *"build the settings page in the `ui-style-acme-com` style"*.
+7. **Quality pass**: a built-in professional skill, **`ui-design-craft`** (visual hierarchy, WCAG contrast, state coverage, responsive discipline, motion restraint, anti-AI-slop checklist), pairs with every captured style to keep the output at a professional bar.
 
 ## Why
 
@@ -51,16 +57,19 @@ Verify the installation: open the DSH Web GUI → *Settings* → the **UI Styles
 
 1. Open *Settings → UI Styles*.
 2. Paste a URL — a website (`https://linear.app`) or a GitHub repo (`https://github.com/shadcn-ui/ui`) — and press **Capture style**.
-3. The plugin fetches, parses, and saves `ui-style-<name>` into its `skills/` directory. The card list shows color swatches, detected frameworks, and the source link; expand **View skill** to inspect the generated `SKILL.md`.
+3. The plugin fetches, parses, and saves `ui-style-<name>` into its `skills/` directory. The card list shows color swatches, detected frameworks, and the source link; expand **Preview theme** to see a live mock rendered with the captured tokens, or **View skill** to inspect the generated `SKILL.md`.
+4. Press **Set as current** on the style you want — it is pinned as the composer shortcut.
 
 Capturing the same site again overwrites (refreshes) its skill.
 
 ### Use a style in a session
 
-In any conversation, name the style — the model's skill catalog already contains it:
+Four ways, pick whichever fits the moment:
 
-> 用 `ui-style-shadcn-ui` 的风格给我做一个仪表盘页面。
-> *Build me a dashboard page in the `ui-style-shadcn-ui` style.*
+- **Composer picker** — type `@` in the chat input and choose from the *style* group (or click the **🎨 Style** button in the input row to pop the same picker open). Picking stages `/ui-style-<name>` in the draft.
+- **Current-style chip** — the pinned style sits above the composer as a chip; one click stages its invocation, the `×` unpins it.
+- **Slash command** — type `/ui-style-<name>` directly; it is a native user-invocable skill.
+- **Plain language** — *"build me a dashboard in the `ui-style-shadcn-ui` style"*; the model's skill catalog already contains it.
 
 The model loads the skill, maps the captured tokens into your stack (CSS variables, Tailwind theme, component-library overrides), and builds UI that matches the source. For the full professional pass it can also load `ui-design-craft`.
 
@@ -115,7 +124,7 @@ Config example (`~/.dsh/profiles/web/cordis.patch.yml`):
 ## Development
 
 ```bash
-node --test "test/*.test.js"   # 16 unit + integration tests
+node --test "test/*.test.js"   # 23 unit + integration tests
 npm pack --dry-run             # verify the published file set
 ```
 

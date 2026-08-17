@@ -100,11 +100,11 @@ test('routes: extract -> list -> get -> delete lifecycle', async () => {
   const webServer = mockWebServer();
   let invalidations = 0;
   const dispose = mountStyleRoutes(webServer, store, () => { invalidations += 1; });
-  assert.equal(webServer.routes.length, 4);
+  assert.equal(webServer.routes.length, 5);
 
-  const call = async (path, method, url, body) => {
-    const route = webServer.routes.find(r => r.path === path);
-    assert.ok(route, `route ${path} registered`);
+  const call = async (path, method, url, body, kind = 'exact') => {
+    const route = webServer.routes.find(r => r.path === path && r.kind === kind);
+    assert.ok(route, `route ${path} (${kind}) registered`);
     const req = mockRequest(method, url, body);
     const res = {
       status: 0,
@@ -130,16 +130,29 @@ test('routes: extract -> list -> get -> delete lifecycle', async () => {
   assert.equal(listed.body.styles[0].topColors[0], '#ff5c00');
 
   // Detail returns the SKILL.md.
-  const detail = await call('/dsh-ui-style/styles/', 'GET', '/dsh-ui-style/styles/ui-style-127-0-0-1');
+  const detail = await call('/dsh-ui-style/styles', 'GET', '/dsh-ui-style/styles/ui-style-127-0-0-1', undefined, 'prefix');
   assert.equal(detail.status, 200);
   assert.match(detail.body.skill, /name: ui-style-127-0-0-1/);
   assert.match(detail.body.skill, /#ff5c00/);
 
-  // Delete removes it and invalidates the skill catalog.
+  // Pin the style as the current selection, then read it back.
+  const pinned = await call('/dsh-ui-style/selection', 'POST', '/dsh-ui-style/selection', { name: 'ui-style-127-0-0-1' });
+  assert.equal(pinned.status, 200, JSON.stringify(pinned.body));
+  assert.equal(pinned.body.style.name, 'ui-style-127-0-0-1');
+  const readSelection = await call('/dsh-ui-style/selection', 'GET', '/dsh-ui-style/selection');
+  assert.equal(readSelection.body.name, 'ui-style-127-0-0-1');
+
+  // The styles listing carries the selection.
+  const listedWithSelection = await call('/dsh-ui-style/styles', 'GET', '/dsh-ui-style/styles');
+  assert.equal(listedWithSelection.body.selection, 'ui-style-127-0-0-1');
+
+  // Delete removes it and invalidates the skill catalog; the selection is
+  // auto-cleared with it.
   const deleted = await call('/dsh-ui-style/styles/delete', 'POST', '/dsh-ui-style/styles/delete', { name: 'ui-style-127-0-0-1' });
   assert.equal(deleted.status, 200);
   assert.equal(invalidations, 2);
   assert.equal((await store.list()).length, 0);
+  assert.equal(await store.getSelection(), null);
 
   dispose();
   assert.equal(webServer.routes.length, 0);

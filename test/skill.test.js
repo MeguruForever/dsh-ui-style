@@ -5,7 +5,7 @@ import { promises as fs } from 'node:fs';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { renderSkillMarkdown, renderTokensJson, skillNameFor, slugify } from '../lib/skill.js';
+import { renderSkillMarkdown, renderTokensJson, skillNameFor, slugify, deriveDesignLanguage } from '../lib/skill.js';
 import { createStyleStore, isValidSkillName, BUILTIN_SKILL } from '../lib/store.js';
 
 const capture = {
@@ -52,12 +52,65 @@ test('renderSkillMarkdown emits valid frontmatter and all sections', () => {
   assert.match(md, /^---\nname: ui-style-example-com\n/);
   assert.match(md, /description: .+Example.+/);
   assert.match(md, /whenToUse: .+/);
+  assert.match(md, /## Design language/);
   assert.match(md, /## Color roles/);
   assert.match(md, /#4f46e5/);
   assert.match(md, /## Typography/);
   assert.match(md, /## Spacing scale/);
   assert.match(md, /## Dark mode\n\nNo dark scheme/);
   assert.match(md, /references\/tokens\.json/);
+});
+
+test('renderSkillMarkdown includes component blueprints when present', () => {
+  const withComponents = {
+    ...capture,
+    tokens: {
+      ...capture.tokens,
+      components: [{
+        selector: '.btn',
+        props: [
+          { prop: 'background', value: '#4f46e5' },
+          { prop: 'border-radius', value: '8px' },
+        ],
+      }],
+      containerWidths: [{ value: '1200px', count: 2 }],
+    },
+  };
+  const md = renderSkillMarkdown(withComponents, 'ui-style-example-com');
+  assert.match(md, /## Component blueprints/);
+  assert.match(md, /\*\*`\.btn`\*\* — background: #4f46e5; border-radius: 8px/);
+  assert.match(md, /## Layout containers/);
+  assert.match(md, /1200px/);
+});
+
+test('deriveDesignLanguage turns tokens into design traits', () => {
+  const { traits, summary } = deriveDesignLanguage({
+    colorRoles: [{ role: 'primary', value: '#4f46e5', via: 'variable --primary' }],
+    colors: [],
+    cssVariables: [],
+    typography: {
+      families: [{ value: 'system-ui, sans-serif', count: 3 }],
+      sizes: [{ value: '16px', count: 9 }, { value: '30px', count: 2 }],
+      weights: [], lineHeights: [], letterSpacings: [],
+    },
+    spacing: [{ value: '8px', count: 10 }, { value: '16px', count: 5 }],
+    radii: [{ value: '6px', count: 8 }],
+    shadows: [],
+    borderWidths: [{ value: '1px', count: 4 }],
+    containerWidths: [],
+    breakpoints: [],
+    motion: { durations: [{ value: '200ms', count: 3 }], easings: [] },
+    darkMode: true,
+  });
+  const byTrait = Object.fromEntries(traits.map(t => [t.trait, t.value]));
+  assert.match(byTrait.Corners, /subtly rounded/);
+  assert.match(byTrait.Elevation, /flat/);
+  assert.match(byTrait['Palette mood'], /indigo|blue|violet/);
+  assert.match(byTrait['Type voice'], /system font stack/);
+  assert.match(byTrait.Borders, /hairline/);
+  assert.match(byTrait.Motion, /brisk/);
+  assert.match(byTrait['Dark mode'], /dark/);
+  assert.ok(summary.length > 20);
 });
 
 test('renderTokensJson is valid JSON with the token payload', () => {

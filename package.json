@@ -1,6 +1,6 @@
 {
   "name": "dsh-ui-style",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DeepSeek Harness plugin: capture the UI design style of any website or GitHub project, distill it into a reusable agent skill, and keep every future UI build visually consistent.",
   "license": "MIT",
   "type": "module",
@@ -34,7 +34,9 @@
       "inject": [
         "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-ui-settings"
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-input-trigger"
       ]
     }
   },

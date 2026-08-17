@@ -110,3 +110,33 @@ test('color parsing helpers round-trip', () => {
   assert.ok(hsl.h > 230 && hsl.h < 250);
   assert.ok(hsl.s > 0.5);
 });
+
+test('component blueprints capture archetype declarations', () => {
+  const tokens = summarizeTokens(aggregateCss(createTokenAggregate(), FIXTURE));
+  const button = tokens.components.find(c => c.selector === '.btn');
+  assert.ok(button, 'a .btn blueprint exists');
+  const bg = button.props.find(p => p.prop === 'background');
+  assert.equal(bg.value, '#4f46e5');
+  const radius = button.props.find(p => p.prop === 'border-radius');
+  assert.equal(radius.value, '8px');
+  const card = tokens.components.find(c => c.selector === '.card');
+  assert.ok(card.props.some(p => p.prop === 'box-shadow'));
+  // Headings land as blueprints with their measured sizes.
+  const h1 = tokens.components.find(c => c.selector === 'h1');
+  assert.ok(h1.props.some(p => p.prop === 'font-size' && p.value === '2.25rem'));
+});
+
+test('border widths and container widths are harvested', () => {
+  const css = '.card { border-width: 1px; } .wrap { max-width: 72ch; } .page { max-width: 1200px; }';
+  const tokens = summarizeTokens(aggregateCss(createTokenAggregate(), css));
+  assert.deepEqual(tokens.borderWidths.map(b => b.value), ['1px']);
+  const containers = tokens.containerWidths.map(c => c.value);
+  assert.ok(containers.includes('72ch'));
+  assert.ok(containers.includes('1200px'));
+});
+
+test('non-component selectors do not leak into blueprints', () => {
+  const css = '.buttonish { color: red; } .toolbar > .icon { color: blue; } #main { color: green; }';
+  const tokens = summarizeTokens(aggregateCss(createTokenAggregate(), css));
+  assert.equal(tokens.components.length, 0);
+});
