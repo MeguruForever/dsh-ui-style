@@ -4,3 +4,6 @@ node_modules/
 # Generated style skills are runtime user data (convention: ui-style-* names);
 # only the built-in craft skill ships with the repo.
 skills/ui-style-*/
+
+# Runtime selection state
+skills/selection.json
